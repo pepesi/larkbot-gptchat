@@ -1,0 +1,6 @@
+apiVersion: v2
+name: larkbot-gptchat
+description: larkbot-gptchat
+type: application
+version: 0.1.1
+appVersion: "1.16.2"

@@ -1,0 +1,17 @@
+BotName: botname
+Lark:
+  AppID: appid
+  AppSecret: appsecret
+  VerifyToken: VerifyToken
+  EncryptKey: ""
+ChatGPT:
+  Host: http://chat-server:9999
+  Token: ""
+  Timeout: 3m
+Message:
+  ExtractFailed: "内部错误"
+  UpstreamFailed: "upstream failed"
+  FilterMap:
+    贩毒:
+    - 我不想和你谈论这个
+    - 我不告诉你
