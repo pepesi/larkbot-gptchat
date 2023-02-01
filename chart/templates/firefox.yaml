@@ -49,7 +49,7 @@ metadata:
   labels:
     app: firefox
 spec:
-  storageClassName: default
+  storageClassName: local-path
   accessModes:
   - ReadWriteOnce
   resources:
