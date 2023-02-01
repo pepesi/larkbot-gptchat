@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: larkbot
-        image: larkbot:v1
+        image: larkbot:latest
         imagePullPolicy: IfNotPresent
         resources:
           requests:
