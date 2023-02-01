@@ -21,6 +21,10 @@ spec:
     spec:
       containers:
       - name: chat-server
+        command:
+        - ChatGPT-API-server
+        - "9999"
+        - ""
         image: chat-server:latest
         imagePullPolicy: IfNotPresent
         resources:
