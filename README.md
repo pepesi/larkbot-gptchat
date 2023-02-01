@@ -23,7 +23,11 @@ REV=latest ./images.sh
 3. 部署到k3s中
 
 export MYNAMESPACE=default
+
+
 kubectl create ns ${MYNAMESPACE}
+
+
 helm template yamls | kubectl -n ${MYNAMESPACE} apply -f -
 
 
