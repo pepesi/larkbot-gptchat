@@ -17,15 +17,17 @@ from flask import (
 
 
 openai.proxy = os.environ.get("OPENAI_PROXY")
+BOTNAME = os.environ.get("BOTNAME", "ChatGPT")
+EXTRA_PROMPT = os.environ.get("EXTRA_PROMPT")
 API_KEY = os.environ.get("OPENAI_API_KEY")
 ENGINE = os.environ.get("GPT_ENGINE", "text-chat-davinci-002-20221122")
 ENCODER = tiktoken.get_encoding("gpt2")
 SYMBOL_END = "<|im_end|>"
 SYMBOL_STOP = "\n\n\n"
 SYMBOL_USER = "User:"
-SYMBOL_CHAT = "ChatGPT:"
+SYMBOL_CHAT = f"{BOTNAME}:"
 MAX_TOKENS = 4096
-DEFAULT_BASE_PROMPT  = f"You are ChatGPT, a large language model trained by OpenAI. Answer conversationally. Current date: : {date.today()}\n\n"  # noqa
+DEFAULT_BASE_PROMPT  = f"你的名字是{BOTNAME}。{EXTRA_PROMPT} 请使用对话式回答。 现在的时间是: {date.today()}\n\n"  # noqa
 
 
 class ChatGPTAPI:
