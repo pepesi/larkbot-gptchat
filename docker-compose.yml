@@ -1,0 +1,33 @@
+version: "3"
+services:
+  redis:
+    image: redis:latest
+    container_name: chatgpt-redis
+    command: >
+      --requirepass apassword
+    env_file:
+      - chat.env
+      - local.env
+  chatgpt:
+    container_name: chatgpt
+    build: ./chatgpt
+    links:
+      - "redis:redis"
+    command:
+    - gunicorn
+    - bot:app
+    - -b0.0.0.0
+    depends_on:
+    - redis
+    env_file:
+      - chat.env
+      - local.env
+    ports:
+      - 8000:8000
+  larkbot:
+    container_name: larkbot
+    build: ./
+    depends_on:
+    - chatgpt
+    ports:
+      - 9999:9999

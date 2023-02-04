@@ -1,1 +1,4 @@
 config.local.yaml
+local.env
+**/__pycache__/
+**/*.pyc

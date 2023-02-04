@@ -1,0 +1,5 @@
+tiktoken
+flask
+redis
+openai
+gunicorn

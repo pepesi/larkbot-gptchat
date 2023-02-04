@@ -3,11 +3,10 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"log"
+	"errors"
+	"io"
 	"net/http"
 
-	"github.com/ChatGPT-Hackers/ChatGPT-API-server/types"
-	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
 
@@ -33,21 +32,27 @@ type ChatGPTClient struct {
 	cli   *http.Client
 }
 
-func (c *ChatGPTClient) Ask(inputText, conversationId, lastMessageId string) (*types.ChatGptResponse, error) {
-	chatResponse := &types.ChatGptResponse{}
-	chatRequest := types.ChatGptRequest{
-		MessageId:      uuid.NewString(),
-		ConversationId: conversationId,
-		ParentId:       lastMessageId,
-		Content:        inputText,
+type Response struct {
+	Code    int    `json:"code"`
+	Message string `json:"msg"`
+}
+
+type ChatGptRequest struct {
+	ChatID   string `json:"chatid"`
+	Question string `json:"question"`
+}
+
+func (c *ChatGPTClient) Chat(inputText, chatID string) (io.ReadCloser, error) {
+	chatRequest := ChatGptRequest{
+		ChatID:   chatID,
+		Question: inputText,
 	}
 	bts, err := json.Marshal(chatRequest)
 	if err != nil {
 		return nil, err
 	}
-	log.Println("ask >>: ", string(bts), err)
 	body := bytes.NewBuffer(bts)
-	req, err := http.NewRequest(http.MethodPost, c.host+"/api/ask", body)
+	req, err := http.NewRequest(http.MethodPost, c.host+"/chat", body)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +61,52 @@ func (c *ChatGPTClient) Ask(inputText, conversationId, lastMessageId string) (*t
 	if err != nil {
 		return nil, err
 	}
-	err = json.NewDecoder(resp.Body).Decode(chatResponse)
-	return chatResponse, err
+	return resp.Body, err
+}
+
+func (c *ChatGPTClient) SetBasePrompt(chatID, basePrompt string) error {
+	data, _ := json.Marshal(map[string]interface{}{
+		"chatid":      chatID,
+		"base_prompt": basePrompt,
+	})
+	body := bytes.NewBuffer(data)
+	req, err := http.NewRequest(http.MethodPost, c.host+"/set_base_prompt", body)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Authorization", c.token)
+	resp, err := c.cli.Do(req)
+	if err != nil {
+		return err
+	}
+	return handleResp(resp.Body)
+}
+
+func (c *ChatGPTClient) Delete(chatID string) error {
+	data, _ := json.Marshal(map[string]interface{}{
+		"chatid": chatID,
+	})
+	body := bytes.NewBuffer(data)
+	req, err := http.NewRequest(http.MethodPost, c.host+"/delete", body)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Authorization", c.token)
+	resp, err := c.cli.Do(req)
+	if err != nil {
+		return err
+	}
+	return handleResp(resp.Body)
+}
+
+func handleResp(r io.ReadCloser) error {
+	decoder := json.NewDecoder(r)
+	rep := &Response{}
+	if err := decoder.Decode(rep); err != nil {
+		return err
+	}
+	if rep.Code != 0 {
+		return errors.New(rep.Message)
+	}
+	return nil
 }

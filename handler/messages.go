@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/google/uuid"
 	lark "github.com/larksuite/oapi-sdk-go/v3"
@@ -69,8 +69,7 @@ func (h *MessageHandler) getOrCreateSession(event *larkim.P2MessageReceiveV1) (*
 	ss = &Session{
 		Id:             sid,
 		Inputs:         make(chan *larkim.P2MessageReceiveV1, 1000),
-		conversationID: "",
-		lastMessageID:  "",
+		conversationID: sid,
 		h:              h,
 	}
 	h.locker.Lock()
@@ -97,35 +96,31 @@ type Session struct {
 	Id             string
 	Inputs         chan *larkim.P2MessageReceiveV1
 	conversationID string
-	lastMessageID  string
 	h              *MessageHandler
 }
 
 func (s *Session) StartConversation() {
 	for {
 		event := <-s.Inputs
-		<-time.After(time.Second * 1)
 		textContent, err := getTextContent(event.Event)
 		if err != nil {
 			log.Printf("extract text failed %v", err.Error())
 			s.Send(viper.GetString(MessageExtractFailed), event)
 			continue
 		}
-		chatResponse, err := s.h.client.Ask(textContent, s.conversationID, s.lastMessageID)
+		streamBody, err := s.h.client.Chat(textContent, s.conversationID)
 		if err != nil {
 			s.Send(viper.GetString(MessageUpstreamFailed), event)
 			log.Printf("get reply failed %v", err.Error())
 			continue
 		}
-		respJson, _ := json.Marshal(chatResponse)
-		log.Println("anwser >>: ", string(respJson), err)
-		if chatResponse.Error != "" {
+		content, err := ioutil.ReadAll(streamBody)
+		if err != nil {
 			s.Send(viper.GetString(MessageUpstreamFailed), event)
+			log.Printf("get stream failed %v", err.Error())
 			continue
 		}
-		s.lastMessageID = chatResponse.ResponseId
-		s.conversationID = chatResponse.ConversationId
-		reply := s.h.filter.Filter(chatResponse.Content)
+		reply := s.h.filter.Filter(string(content))
 
 		s.Send(reply, event)
 	}
