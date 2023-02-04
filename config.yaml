@@ -5,7 +5,7 @@ Lark:
   VerifyToken: VerifyToken
   EncryptKey: ""
 ChatGPT:
-  Host: http://chat-server:9999
+  Host: http://chatgpt:8000
   Token: ""
   Timeout: 3m
 Message:
