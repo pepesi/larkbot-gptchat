@@ -53,10 +53,10 @@ func (c *ChatGPTClient) Chat(inputText, chatID string) (io.ReadCloser, error) {
 	}
 	body := bytes.NewBuffer(bts)
 	req, err := http.NewRequest(http.MethodPost, c.host+"/chat", body)
+	c.setHeader(req)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authorization", c.token)
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (c *ChatGPTClient) SetBasePrompt(chatID, basePrompt string) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", c.token)
+	c.setHeader(req)
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func (c *ChatGPTClient) Delete(chatID string) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Authorization", c.token)
+	c.setHeader(req)
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		return err
@@ -109,4 +109,11 @@ func handleResp(r io.ReadCloser) error {
 		return errors.New(rep.Message)
 	}
 	return nil
+}
+
+func (c *ChatGPTClient) setHeader(req *http.Request) {
+	req.Header.Add("Content-Type", "application/json")
+	if len(c.token) > 0 {
+		req.Header.Add("Authorization", c.token)
+	}
 }
