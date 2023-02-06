@@ -113,7 +113,7 @@ class Promptor:
         return int(idx)
 
     def incr_history_start(self, chat_id: str):
-        self.cli.incr(self._history_key(chat_id))
+        self.cli.incr(self._history_start_key(chat_id))
 
     def add_history(self, chat_id: str, data: str) -> None:
         self.cli.rpush(self._history_key(chat_id), data)
