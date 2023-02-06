@@ -16,6 +16,10 @@ services:
     command:
     - gunicorn
     - bot:app
+    - -t
+    - "180"
+    - --log-level
+    - "debug"
     - -b0.0.0.0
     depends_on:
     - redis
