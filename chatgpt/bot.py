@@ -66,6 +66,8 @@ class ChatGPTAPI:
             yield sep["choices"][0]["text"]
             full_response += sep["choices"][0]["text"]
 
+        if full_response.endswith(SYMBOL_END):
+            full_response = full_response[:-len(SYMBOL_END)]
         self.promptor.add_history(
             chat_id,
             f"{SYMBOL_USER} {user_request}{SYMBOL_STOP}{SYMBOL_CHAT} {full_response}{SYMBOL_END}\n"
